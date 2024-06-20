@@ -1,10 +1,101 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-    <meta charset="UTF-8">
-    <title>アプリ一覧</title>
+<meta charset="UTF-8">
+<title>茶葉計算機</title>
+<style>
+  #result { font-weight: bold; }
+  .box{
+    margin: 20px;
+    text-align: center;
+  }
+input{
+  width: 40%;
+  height: 100px;
+  margin: 5px;
+  font-size: 50px;
+}
+button{
+  width: 300px;
+  height: 100px;
+  font-size: 40px;
+}
+body{
+  font-size: 25px;
+}
+</style>
+<script>
+  // 入力されたら自動で計算する関数
+  function autoCalculate() {
+    let sumA = 0, sumB = 0;
+    for (let i = 1; i <= 10; i++) {
+      if(!(document.getElementById('a'+i) && document.getElementById('a'+i) .value.trim() === ''))
+      sumA += parseFloat(document.getElementById('a' + i).value) || 0;
+    }
+    for (let i = 1; i <= 4; i++) {
+      if(!(document.getElementById('b'+i) && document.getElementById('b'+i) .value.trim() === ''))
+      sumB += parseFloat(document.getElementById('b' + i).value) || 0;
+    }
+    const result = (sumA - sumB).toFixed(2);
+    document.getElementById('result').value = result;
+  }
+
+  // ダウンロードボタンの機能
+  function downloadResult() {
+    const date = new Date().toISOString().slice(0, 10);
+    const text = document.getElementById('t').value;
+    const result = document.getElementById('result').value;
+    const filename = `${date}_${text}_${result}kg.txt`;
+    const content = filename;
+
+    const element = document.createElement('a');
+    const blob = new Blob([content], { type: 'text/plain' });
+    element.href = URL.createObjectURL(blob);
+    element.download = filename;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  }
+</script>
 </head>
 <body>
-    <a href="計算器.html">テスト計算器</a>
+<h1 style="text-align: center;">茶葉計算機</h1>
+<h3>茶葉:</h3>
+<div class="box">
+  <!-- a系の入力ボックスを8個追加 -->
+  <input type="number" id="a1" step="0.01" oninput="autoCalculate()">
+  <input type="number" id="a2" step="0.01" oninput="autoCalculate()">
+  <input type="number" id="a3" step="0.01" oninput="autoCalculate()">
+  <input type="number" id="a4" step="0.01" oninput="autoCalculate()">
+  <input type="number" id="a5" step="0.01" oninput="autoCalculate()">
+  <input type="number" id="a6" step="0.01" oninput="autoCalculate()">
+  <input type="number" id="a7" step="0.01" oninput="autoCalculate()">
+  <input type="number" id="a8" step="0.01" oninput="autoCalculate()">
+  <input type="number" id="a9" step="0.01" oninput="autoCalculate()">
+  <input type="number" id="a10" step="0.01" oninput="autoCalculate()">
+</div>
+
+<h3>袋:</h3>
+<div class="box">
+  <!-- b系の入力ボックスを4個追加 -->
+  <input type="number" id="b1" step="0.01" oninput="autoCalculate()">
+  <input type="number" id="b2" step="0.01" oninput="autoCalculate()">
+  <input type="number" id="b3" step="0.01" oninput="autoCalculate()">
+  <input type="number" id="b4" step="0.01" oninput="autoCalculate()">
+</div>
+
+<div class="box">
+  <label for="result">結　果</label>
+  <input style="width: 30%;" type="text" id="result" readonly>
+  <label for="t">ラベル:</label>
+  <input style="width: 30%;" type="text" id="t" placeholder="地名">
+</div>
+<div style="text-align: center;">
+<button onclick="downloadResult()">ダウンロード</button>
+</div>
+<br>
+<h3>
+ラベルごとで一度に計算を行ってダウンロードしてください。
+</h3>
 </body>
 </html>
