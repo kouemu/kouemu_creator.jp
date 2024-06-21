@@ -3,10 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <title>茶葉計算機</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
 <style>
   #result { font-weight: bold; }
   .box{
-    margin: 20px;
+    margin: 0px;
     text-align: center;
   }
 input{
@@ -20,48 +21,158 @@ button{
   width: 300px;
   height: 100px;
   font-size: 40px;
+  margin: 10px;
 }
 body{
   font-size: 25px;
 }
+.migi{
+  width: 30%;
+}
+.hidari{
+  width: 70%;
+}
+.sayu{
+  display: flex;
+}
+textarea{
+  width: 90%;
+  height: 100%;
+  resize: none;
+  font-size: 20px;
+}
+h3{
+  padding-bottom: 0;
+}
 </style>
 <script>
-  // 入力されたら自動で計算する関数
-  function autoCalculate() {
-    let sumA = 0, sumB = 0;
-    for (let i = 1; i <= 10; i++) {
-      if(!(document.getElementById('a'+i) && document.getElementById('a'+i) .value.trim() === ''))
-      sumA += parseFloat(document.getElementById('a' + i).value) || 0;
-    }
-    for (let i = 1; i <= 4; i++) {
-      if(!(document.getElementById('b'+i) && document.getElementById('b'+i) .value.trim() === ''))
-      sumB += parseFloat(document.getElementById('b' + i).value) || 0;
-    }
-    const result = (sumA - sumB).toFixed(2);
-    document.getElementById('result').value = result;
+  // a系とb系の合計を計算して結果を表示する関数
+function autoCalculate() {
+  let sumA = 0, sumB = 0;
+  for (let i = 1; i <= 6; i++) {
+    sumA += parseFloat(document.getElementById('a' + i).value) || 0;
   }
-
-  // ダウンロードボタンの機能
-  function downloadResult() {
-    const date = new Date().toISOString().slice(0, 10);
-    const text = document.getElementById('t').value;
-    const result = document.getElementById('result').value;
-    const filename = `${date}_${text}_${result}kg.txt`;
-    const content = filename;
-
-    const element = document.createElement('a');
-    const blob = new Blob([content], { type: 'text/plain' });
-    element.href = URL.createObjectURL(blob);
-    element.download = filename;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+  for (let i = 1; i <= 2; i++) {
+    sumB += parseFloat(document.getElementById('b' + i).value) || 0;
   }
+  document.getElementById('result').value = (sumA - sumB).toFixed(2);
+}
+
+// "計上"ボタンが押されたときの処理
+ function sum() {
+  const listElement = document.getElementById('list');
+  const resultValue = document.getElementById('result').value;
+  const labelValue = document.getElementById('t').value;
+  //const currentDate = new Date().toISOString();
+  // 日時を年/月/日-時:分 の形式にフォーマット
+const now = new Date();
+const currentDate = now.getFullYear() + '/' +
+                    ('0' + (now.getMonth() + 1)).slice(-2) + '/' +
+                    ('0' + now.getDate()).slice(-2) + '-' +
+                    ('0' + now.getHours()).slice(-2) + ':' +
+                    ('0' + now.getMinutes()).slice(-2);
+  const newValue = `\n${currentDate}_${labelValue}_${resultValue}kg`;
+  
+  // リストに追加
+  listElement.value += newValue;
+  
+  // クッキーに保存
+  setCookie('teaList', listElement.value, 180); // 180日 = 6ヶ月
+  
+  // 入力値をクリア
+  clearInputs();
+};
+
+// クッキーにデータを保存する関数
+function setCookie(name, value, days) {
+  const date = new Date();
+  date.setTime(date.getTime() + (days * 24 * 60 * 60 * 1000));
+  const expires = "expires=" + date.toUTCString();
+  document.cookie = name + "=" + encodeURIComponent(value) + ";" + expires + ";path=/";
+}
+
+// 入力値をクリアする関数
+function clearInputs() {
+  for (let i = 1; i <= 6; i++) {
+    document.getElementById('a' + i).value = '';
+  }
+  for (let i = 1; i <= 2; i++) {
+    document.getElementById('b' + i).value = '';
+  }
+  document.getElementById('result').value = '';
+  document.getElementById('t').value = '';
+}
+
+// ページが読み込まれたときにクッキーからデータを取得する関数
+window.onload = function() {
+  document.getElementById('list').value = getCookie('teaList');
+};
+
+// クッキーからデータを取得する関数
+function getCookie(name) {
+  const nameEQ = name + "=";
+  const ca = document.cookie.split(';');
+  for(let i=0;i < ca.length;i++) {
+    let c = ca[i];
+    while (c.charAt(0)==' ') c = c.substring(1,c.length);
+    if (c.indexOf(nameEQ) == 0) return decodeURIComponent(c.substring(nameEQ.length,c.length));
+  }
+  return null;
+}
+
+// "ダウンロード"ボタンが押されたときにPDFを生成してダウンロードする関数
+function dlb() {
+  // PDFを生成する関数
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    // PDFにテキストを追加
+    doc.text(document.getElementById('list').value, 20, 20);
+    
+  // 日時を年/月/日-時:分 の形式にフォーマット
+const now = new Date();
+const currentDate = now.getFullYear() + '/' + ('0' + (now.getMonth() + 1)).slice(-2) + '/' + ('0' + now.getDate()).slice(-2);
+    // PDFをダウンロード
+    doc.save(`${currentDate}_download_otya_data.pdf`);
+  
+};
+
+//データを全て消すボタン
+function adel(){
+  if(confirm("この操作はやり直せません。\n実行しますか？"))
+  {
+    setCookie('teaList', '', 180); // 180日 = 6ヶ月
+    document.getElementById('list').value='';
+  }
+}
+
+//一行消すボタン
+function ldel(){
+
+  if(confirm("この操作はやり直せません。\n実行しますか？"))
+  {
+
+  // textareaの内容を取得
+var content = document.getElementById('list').value;
+
+// 改行で分割して配列にする
+var lines = content.split('\n');
+
+// 配列が空でない場合、最後の要素を削除
+if(lines.length > 0) {
+    lines.pop();
+}
+
+// 配列を改行で結合してtextareaにセット
+document.getElementById('list').value = lines.join('\n');
+}
+}
 </script>
 </head>
 <body>
-<h1 style="text-align: center;">茶葉計算機</h1>
-<h3>茶葉:</h3>
+  <div class="sayu">
+  <div class="hidari">
+    <b>茶葉：</b>
 <div class="box">
   <!-- a系の入力ボックスを8個追加 -->
   <input type="number" id="a1" step="0.01" oninput="autoCalculate()">
@@ -70,33 +181,28 @@ body{
   <input type="number" id="a4" step="0.01" oninput="autoCalculate()">
   <input type="number" id="a5" step="0.01" oninput="autoCalculate()">
   <input type="number" id="a6" step="0.01" oninput="autoCalculate()">
-  <input type="number" id="a7" step="0.01" oninput="autoCalculate()">
-  <input type="number" id="a8" step="0.01" oninput="autoCalculate()">
-  <input type="number" id="a9" step="0.01" oninput="autoCalculate()">
-  <input type="number" id="a10" step="0.01" oninput="autoCalculate()">
 </div>
 
-<h3>袋:</h3>
+<b>袋：</b>
 <div class="box">
   <!-- b系の入力ボックスを4個追加 -->
   <input type="number" id="b1" step="0.01" oninput="autoCalculate()">
   <input type="number" id="b2" step="0.01" oninput="autoCalculate()">
-  <input type="number" id="b3" step="0.01" oninput="autoCalculate()">
-  <input type="number" id="b4" step="0.01" oninput="autoCalculate()">
 </div>
 
 <div class="box">
-  <label for="result">結　果</label>
+  <label for="result"><b>結　果</b></label>
   <input style="width: 30%;" type="text" id="result" readonly>
-  <label for="t">ラベル:</label>
+  <label for="t"><b>ラベル:</b></label>
   <input style="width: 30%;" type="text" id="t" placeholder="地名">
 </div>
-<div style="text-align: center;">
-<button onclick="downloadResult()">ダウンロード</button>
 </div>
-<br>
-<h3>
-ラベルごとで一度に計算を行ってダウンロードしてください。
-</h3>
+<div class="migi">
+  <textarea disabled id="list"></textarea>
+</div>
+</div>
+<div style="text-align: center;">
+<button onclick="sum()">計上</button><button onclick="ldel()">一行消す</button><button onclick="adel()">計上データ消す</button><button onclick="dlb()">ダウンロード</button>
+</div>
 </body>
 </html>
